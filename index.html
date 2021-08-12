@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Super Smash Bres</title>
+    <script src="libs/phaser.min.js"></script>
+    <style type="text/css">
+      body {
+        margin: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <script>
+      var config = {
+        type: Phaser.AUTO,
+        physics: {
+          default: "arcade",
+          arcade: {
+            gravity: { y: 800 },
+            //debug: true,
+          },
+        },
+        scale: {
+          mode: Phaser.Scale.RESIZE,
+        },
+        scene: {
+          preload: preload,
+          create: create,
+          update: update,
+        },
+        input: {
+          gamepad: true,
+        },
+      };
+
+      var player;
+      var player2;
+      var cursors;
+      var gamepad;
+      var gamepad2;
+      var pad1;
+      var pad2;
+      var attack;
+      var rattack;
+
+      var game = new Phaser.Game(config);
+
+      function preload() {
+        this.load.image("bg", "assets/background.jpg");
+        this.load.image("stage", "assets/stage.png");
+        this.load.spritesheet("dude", "assets/dude.png", {
+          frameWidth: 32,
+          frameHeight: 48,
+        });
+      }
+
+      function create() {
+        this.add
+          .image(this.sys.canvas.width / 2, this.sys.canvas.height / 1.7, "bg")
+          .setScale(0.55);
+
+        platforms = this.physics.add.staticGroup();
+
+        stage = platforms
+          .create(
+            this.sys.canvas.width / 2,
+            this.sys.canvas.height / 1.1,
+            "stage"
+          )
+          .setScale(0.8)
+          .refreshBody();
+        stage.body.setSize(1202 * 0.8, 50);
+        stage.body.setOffset(28, 73);
+
+        player = this.physics.add.sprite(500, 250, "dude");
+
+        player.setBounce(0);
+        player.setScale(2);
+        player.setCollideWorldBounds(true);
+        player.body.setSize(8, 48);
+
+        player2 = this.physics.add.sprite(1200, 250, "dude");
+
+        player2.setBounce(0);
+        player2.setScale(2);
+        player2.setCollideWorldBounds(true);
+        player2.body.setSize(8, 48);
+
+        this.anims.create({
+          key: "leftstill",
+          frames: [{ key: "dude", frame: 0 }],
+          frameRate: 20,
+        });
+
+        this.anims.create({
+          key: "left",
+          frames: this.anims.generateFrameNumbers("dude", { start: 0, end: 3 }),
+          frameRate: 10,
+          repeat: -1,
+        });
+
+        this.anims.create({
+          key: "turn",
+          frames: [{ key: "dude", frame: 4 }],
+          frameRate: 20,
+        });
+
+        this.anims.create({
+          key: "rightstill",
+          frames: [{ key: "dude", frame: 5 }],
+          frameRate: 20,
+        });
+
+        this.anims.create({
+          key: "right",
+          frames: this.anims.generateFrameNumbers("dude", { start: 5, end: 8 }),
+          frameRate: 10,
+          repeat: -1,
+        });
+
+        player.anims.play("rightstill");
+        player2.anims.play("leftstill");
+
+        this.physics.add.collider(player, platforms);
+        this.physics.add.collider(player2, platforms);
+        this.physics.add.collider(player, player2);
+        cursors = this.input.keyboard.createCursorKeys();
+
+        var text = this.add.text(
+          10,
+          10,
+          "Press a button on the Gamepad to use",
+          { font: "14px Courier", fill: "#00ff00" }
+        );
+
+        var rtext = this.add.text(
+          this.sys.canvas.width - 310,
+          10,
+          "Press a button on the Gamepad to use",
+          { font: "14px Courier", fill: "#00ff00" }
+        );
+
+        attack = this.add.text(10, 30, "Action:", {
+          font: "14px Courier",
+          fill: "#00ff00",
+        });
+
+        rattack = this.add.text(this.sys.canvas.width - 310, 30, "Action:", {
+          font: "14px Courier",
+          fill: "#00ff00",
+        });
+
+        this.input.gamepad.once(
+          "down",
+          function (pad, button, index) {
+            text.setText("Left Gamepad: Connected");
+
+            gamepad = pad;
+          },
+          this
+        );
+
+        this.input.gamepad.once(
+          "up",
+          function (pad, button, index) {
+            rtext.setText("Right Gamepad: Connected");
+
+            gamepad2 = pad;
+          },
+          this
+        );
+      }
+
+      function update() {
+/*         if (cursors) {
+          if (cursors.left.isDown) {
+            player.setVelocityX(-160);
+
+            player.anims.play("left", true);
+          } else if (cursors.right.isDown) {
+            player.setVelocityX(160);
+
+            player.anims.play("right", true);
+          } else {
+            player.setVelocityX(0);
+
+            player.anims.play("turn");
+          }
+
+          if (cursors.up.isDown && player.body.touching.down) {
+            player.setVelocityY(-330);
+          }
+        } */
+
+        if (gamepad) {
+          // key B for Basic attack
+          if (gamepad.B) {
+            attack.setText("Action: Basic");
+          }
+
+          // key A for Special attack
+          else if (gamepad.A) {
+            attack.setText("Action: Special");
+          }
+
+          // left shoulder key for grabbing
+          else if (gamepad.L1) {
+            attack.setText("Action: Grab");
+          }
+
+          // right shoulder key for shielding
+          else if (gamepad.R1) {
+            attack.setText("Action: Shield");
+          }
+
+          // walk right
+          else if (gamepad.rightStick.x != 0) {
+            player.setVelocityX(160);
+          }
+
+          else {
+            player.anims.play("turn");
+          }
+
+          // keys Y and X to jump (left and upper key)
+          if (
+            (gamepad.Y && player.body.touching.down) ||
+            (gamepad.X && player.body.touching.down)
+          ) {
+            player.setVelocityY(-330);
+            attack.setText("Action: Jump");
+          }
+
+          // duck
+/*           if (gamepad.down) {
+          } */
+        }
+      
+        if (gamepad2) {
+          // key B for Basic attack
+          if (gamepad2.B) {
+            rattack.setText("Action: Basic");
+          }
+
+          // key A for Special attack
+          else if (gamepad2.A) {
+            rattack.setText("Action: Special");
+          }
+
+          // left shoulder key for grabbing
+          else if (gamepad2.L1) {
+            rattack.setText("Action: Grab");
+          }
+
+          // right shoulder key for shielding
+          else if (gamepad2.R1) {
+            rattack.setText("Action: Shield");
+          }
+
+          // walk right
+          else if (gamepad2.rightStick.x != 0) {
+            player2.setVelocityX(160);
+          }
+
+          else {
+            player2.anims.play("turn");
+          }
+
+          // keys Y and X to jump (left and upper key)
+          if (
+            (gamepad2.Y && player2.body.touching.down) ||
+            (gamepad2.X && player2.body.touching.down)
+          ) {
+            player2.setVelocityY(-330);
+            rattack.setText("Action: Jump");
+          }
+
+          // duck
+/*           else if (gamepad2.down) {
+          } */
+        }
+      }
+    </script>
+  </body>
+</html>
